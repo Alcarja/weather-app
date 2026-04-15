@@ -1,73 +1,41 @@
-# React + TypeScript + Vite
+# Weather Forecast
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple React + Vite app that shows current weather conditions for your location and lets you search any city in the world.
 
-Currently, two official plugins are available:
+## Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Run `npm install` to install the dependencies
+2. Run `npm run dev` to launch the app at `http://localhost:5173/`
 
-## React Compiler
+## Architecture
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The data layer is split into two files:
 
-## Expanding the ESLint configuration
+- **`api.ts`** — contains all the functions that make HTTP calls to the Open-Meteo and geocoding APIs. This mimics the role a backend service would play: each function maps to a specific endpoint and returns typed data.
+- **`hooks.ts`** — wraps those API functions into React Query hooks (`useCurrentWeather`, `useHourlyForecast`, etc.). Pages and components call these hooks directly instead of calling `api.ts` themselves.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+**React Query** handles caching, loading, and error states for all API calls. **React Router** handles navigation between pages. UI components (dialogs, sidebar, calendar, etc.) are built with **shadcn/ui**.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Pages
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Forecast (`/`)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Asks the user for browser location permissions and uses their coordinates to fetch current weather. Below the hero section there is a hardcoded list of cities displayed in a table (desktop) or card list (mobile).
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Search modal
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+A search bar is available in the navbar across the entire app by design — it is mounted in the layout, not inside any page. Searching a city opens a modal with three tabs:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **Hourly** — next 12 hours of temperature and precipitation
+- **Weekly** — 7-day forecast with daily highs and lows
+- **Calendar** — pick any day within the next week to see its hourly breakdown
+
+## Design decisions
+
+The brief suggested using raw coordinates to identify locations, but this app uses **reverse geocoding** instead — converting coordinates into a human-readable city name via the **BigDataCloud reverse geocoding API** (no API key required). This is more intuitive for the user and avoids showing raw latitude/longitude values in the UI.
+
+The Open-Meteo API returns numeric **WMO weather codes** for conditions. These are mapped in `src/lib/weather.ts` to human-readable labels and emojis (e.g. code `63` → "Rain" + 🌧) so the UI shows something meaningful instead of a raw number.
+
+## Known issues
+
+The `precipitation` field returned by the current weather endpoint is consistently `0.00` regardless of actual conditions.
