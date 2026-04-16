@@ -20,7 +20,8 @@ export type {
 
 const BASE_URL = "https://api.open-meteo.com/v1";
 const GEO_URL = "https://geocoding-api.open-meteo.com/v1";
-const REVERSE_GEO_URL = "https://api.bigdatacloud.net/data/reverse-geocode-client";
+const REVERSE_GEO_URL =
+  "https://api.bigdatacloud.net/data/reverse-geocode-client";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -48,10 +49,10 @@ function buildUrl(base: string, params: Record<string, string>): string {
 // API methods
 // ---------------------------------------------------------------------------
 
-/**
- * Fetches current weather conditions for a given coordinate.
- * Includes today's high/low from the daily endpoint.
- */
+/*
+  Fetches current weather conditions for a given coordinate.
+  Includes today's high/low from the daily endpoint.
+*/
 export async function getCurrentWeather({
   latitude,
   longitude,
@@ -78,10 +79,9 @@ export async function getCurrentWeather({
   return fetchJson<CurrentWeatherResponse>(url);
 }
 
-/**
- * Fetches hourly temperature, weather code, and precipitation probability
- * for the next 24 hours.
- */
+/*
+  Fetches hourly temperature, weather code, and precipitation probability for the next 24 hours.
+*/
 export async function getHourlyForecast({
   latitude,
   longitude,
@@ -96,9 +96,9 @@ export async function getHourlyForecast({
   return fetchJson<HourlyForecastResponse>(url);
 }
 
-/**
- * Fetches a 7-day daily forecast (highs, lows, weather code, precipitation).
- */
+/*
+  Fetches a 7-day daily forecast (highs, lows, weather code, precipitation).
+*/
 export async function getDailyForecast({
   latitude,
   longitude,
@@ -118,23 +118,25 @@ export async function getDailyForecast({
   return fetchJson<DailyForecastResponse>(url);
 }
 
-/**
- * Converts coordinates into a human-readable city/country name.
- * Uses the free BigDataCloud reverse geocoding API (no key required).
- */
-export async function reverseGeocode({ latitude, longitude }: Coordinates): Promise<ReverseGeocodeResponse> {
+/*
+  Uses the free BigDataCloud reverse geocoding API to convert coordinates into readable city/country.
+*/
+export async function reverseGeocode({
+  latitude,
+  longitude,
+}: Coordinates): Promise<ReverseGeocodeResponse> {
   const url = buildUrl(REVERSE_GEO_URL, {
     latitude: String(latitude),
     longitude: String(longitude),
-    localityLanguage: 'en',
-  })
-  return fetchJson<ReverseGeocodeResponse>(url)
+    localityLanguage: "en",
+  });
+  return fetchJson<ReverseGeocodeResponse>(url);
 }
 
-/**
- * Searches for locations by name using the Open-Meteo Geocoding API.
- * Returns up to `count` results (default 5).
- */
+/*
+  Searches for locations by name using the Open-Meteo Geocoding API.
+  Returns up to 5 results.
+*/
 export async function searchLocation(
   query: string,
   count = 5,
